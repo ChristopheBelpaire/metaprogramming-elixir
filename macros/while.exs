@@ -6,7 +6,7 @@ defmodule Loop do
           if unquote(expression) do
             unquote(block)
           else
-            throw :break
+            Loop.break
           end
         end
       catch
@@ -14,4 +14,6 @@ defmodule Loop do
       end
     end
   end
+
+  def break, do: throw :break
 end

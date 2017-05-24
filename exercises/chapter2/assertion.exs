@@ -34,6 +34,12 @@ defmodule Assertion do
       Assertion.Test.assert(boolean)
     end
   end
+
+  defmacro refute({operator, _, [lhs, rhs]}) do
+    quote bind_quoted: [operator: operator, lhs: lhs, rhs: rhs] do
+      Assertion.Test.refute(operator, lhs, rhs)
+    end
+  end
 end
 
 defmodule Assertion.Test do
@@ -60,6 +66,16 @@ defmodule Assertion.Test do
     Expected:        #{lhs}
     to be equals to: #{rhs}
     """}
+  end
+
+  def refute(:==, lhs, rhs) when lhs == rhs do
+    {:fail, """
+    Expected:        #{lhs}
+    to be equals to: #{rhs}
+    """}
+  end
+  def refute(:==, lhs, rhs) do
+    :ok
   end
 
   def assert(:!=, lhs, rhs) when lhs != rhs do

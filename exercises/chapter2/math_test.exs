@@ -14,4 +14,8 @@ defmodule MathTest do
     assert true
   end
 
+  test "refute equals" do
+    refute 2 + 3 == 6
+  end
+
 end

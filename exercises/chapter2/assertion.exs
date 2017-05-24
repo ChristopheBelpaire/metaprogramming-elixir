@@ -29,6 +29,11 @@ defmodule Assertion do
     end
   end
 
+  defmacro assert(boolean) do
+    quote bind_quoted: [boolean: boolean] do
+      Assertion.Test.assert(boolean)
+    end
+  end
 end
 
 defmodule Assertion.Test do
@@ -84,6 +89,15 @@ defmodule Assertion.Test do
     {:fail, """
     Expected:        #{lhs}
     to be lower to: #{rhs}
+    """}
+  end
+
+  def assert(true) do
+    :ok
+  end
+  def assert(false) do
+     {:fail, """
+    Expected true value
     """}
   end
 end

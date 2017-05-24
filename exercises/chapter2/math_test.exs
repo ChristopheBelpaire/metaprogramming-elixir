@@ -10,4 +10,8 @@ defmodule MathTest do
     assert 3 > 2
   end
 
+  test "true should be true" do
+    assert true
+  end
+
 end

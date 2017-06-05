@@ -46,17 +46,22 @@ defmodule Assertion.Test do
 
   def run(tests, module) do
     Enum.each tests, fn {test_func, description} ->
-      case apply(module, test_func, []) do
-        :ok             -> IO.write(".")
-        {:fail, reason} -> IO.puts """
-        ==============================
-        FAILURE : #{description}
-        ==============================
-        #{reason}
-        """
-      end
+      spawn(__MODULE__, :run_test, [test_func, description, module])
     end
   end
+
+  def run_test(test_func, description, module) do
+    case apply(module, test_func, []) do
+      :ok             -> IO.write(".")
+      {:fail, reason} -> IO.puts """
+      ==============================
+      FAILURE : #{description}
+      ==============================
+      #{reason}
+      """
+    end
+  end
+
 
   def assert(:==, lhs, rhs) when lhs == rhs do
     :ok

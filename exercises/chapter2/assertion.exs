@@ -45,20 +45,34 @@ end
 defmodule Assertion.Test do
 
   def run(tests, module) do
-    Enum.each tests, fn {test_func, description} ->
-      spawn(__MODULE__, :run_test, [test_func, description, module])
-    end
+    started_at = :erlang.system_time
+    succeded =
+    Enum.map(tests, fn {test_func, description} ->
+      Task.async(__MODULE__, :run_test, [test_func, description, module])
+    end)
+    |> Enum.map(&Task.await/1)
+    |> Enum.count(fn(result) -> result == :ok end)
+
+    IO.puts """
+
+    Tests passed in : #{(:erlang.system_time - started_at)/1000} milleseconds
+    #{succeded}/#{Enum.count(tests)} passed
+    """
   end
 
   def run_test(test_func, description, module) do
     case apply(module, test_func, []) do
-      :ok             -> IO.write(".")
-      {:fail, reason} -> IO.puts """
-      ==============================
-      FAILURE : #{description}
-      ==============================
-      #{reason}
-      """
+      :ok ->
+        IO.write(".")
+        :ok
+      {:fail, reason} ->
+        IO.puts """
+        ==============================
+        FAILURE : #{description}
+        ==============================
+        #{reason}
+        """
+        :fail
     end
   end
 

@@ -29,7 +29,27 @@ defmodule Translator do
     end
   end
 
-  defp deftranslations(locales, current_pah, mappings) do
-    #TBD
+  defp deftranslations(locale, current_path, mappings) do
+    for {key, val} <- mappings do
+      path = append_path(current_path, key)
+      if Keyword.keyword?(val) do
+        deftranslations(locale, path, val)
+      else
+        quote do
+          def t(unquote(locale), unquote(path), bindings) do
+            unquote(interpolate(val))
+          end
+        end
+      end
+    end
   end
+
+  defp interpolate(string) do
+    #tbd
+    string
+  end
+
+  defp append_path("", next), do: to_string(next)
+  defp append_path(current, next), do: "#{current}.#{next}"
+
 end

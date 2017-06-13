@@ -8,7 +8,7 @@ defmodule Translator do
   end
 
   defmacro __before_compile__(env) do
-    compile(Module.get_attribute(env.module, :locale))
+    compile(Module.get_attribute(env.module, :locales))
   end
 
   defmacro locale(name, mappings) do
@@ -18,7 +18,18 @@ defmodule Translator do
   end
 
   def compile(translations) do
-    #TBD
+    translations_ast = for {locale, mappings} <- translations do
+      deftranslations(locale, "", mappings)
+    end
+
+    quote do
+      def t(locale, path, bindings \\ [])
+      unquote(translations_ast)
+      def t(_locale, _path, _bindings), do: {:error, :no_translations}
+    end
   end
 
+  defp deftranslations(locales, current_pah, mappings) do
+    #TBD
+  end
 end

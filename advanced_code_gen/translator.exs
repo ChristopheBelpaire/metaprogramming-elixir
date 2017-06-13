@@ -22,11 +22,14 @@ defmodule Translator do
       deftranslations(locale, "", mappings)
     end
 
-    quote do
+    final_ast = quote do
       def t(locale, path, bindings \\ [])
       unquote(translations_ast)
       def t(_locale, _path, _bindings), do: {:error, :no_translations}
     end
+
+    IO.puts Macro.to_string(final_ast)
+    final_ast
   end
 
   defp deftranslations(locale, current_path, mappings) do

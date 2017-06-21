@@ -29,6 +29,12 @@ defmodule Assertion do
     end
   end
 
+  defmacro assert_raise(error, function) do
+    quote bind_quoted: [error: error, function: function] do
+      Assertion.Test.assert_raise(error, function)
+    end
+  end
+
 end
 
 defmodule Assertion.Test do
@@ -64,5 +70,20 @@ defmodule Assertion.Test do
     Expected:        #{lhs}
     to be greater to: #{rhs}
     """}
+  end
+
+  def assert_raise(error, function) do
+    try do
+      function.()
+    rescue
+      error ->
+        :ok
+    else
+      _ ->
+        {:fail, """
+        Expected: #{error}
+        to be thrown
+        """}
+    end
   end
 end

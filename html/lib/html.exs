@@ -5,9 +5,13 @@ defmodule Html do
   end)
 
   for tag <- @tags do
-    defmacro unquote(tag)(do: inner) do
+    defmacro unquote(tag)(attrs, do: inner) do
       tag = unquote(tag)
-      quote do: tag(unquote(tag), do: unquote(inner))
+      quote do: tag(unquote(tag), unquote(attrs), do: unquote(inner))
+    end
+    defmacro unquote(tag)(attrs \\ []) do
+      tag = unquote(tag)
+      quote do: tag(unquote(tag), unquote(attrs))
     end
   end
 
@@ -30,9 +34,13 @@ defmodule Html do
 
   def render(buff), do: Agent.get(buff,&(&1)) |> Enum.reverse |> Enum.join("")
 
-  defmacro tag(name, do: inner) do
+  defmacro tag(name, attrs \\ []) do
+    {inner, attrs} = Keyword.pop(attrs, :do)
+    quote do: tag(unquote(name), unquote(attrs), do: unquote(inner))
+  end
+  defmacro tag(name, attrs, do: inner) do
     quote do
-      put_buffer var!(buffer, Html), "<#{unquote(name)}>"
+      put_buffer var!(buffer, Html), open_tag(unquote_splicing([name, attrs]))
       unquote(inner)
       put_buffer var!(buffer, Html), "</#{unquote(name)}>"
     end
@@ -40,5 +48,11 @@ defmodule Html do
 
   defmacro text(string) do
     quote do: put_buffer(var!(buffer, Html), to_string(unquote(string)))
+  end
+
+  def open_tag(name, []), do: "<#{name}>"
+  def open_tag(name, attrs) do
+    attr_html = for {key, val} <- attrs, into: "", do: " #{key}=\"#{val}\""
+    "<#{name}>#{attr_html}"
   end
 end

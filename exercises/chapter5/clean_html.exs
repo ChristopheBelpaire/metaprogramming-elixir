@@ -1,5 +1,6 @@
 defmodule Html do
-  @extrernal_resource tags_path = Path.join([__DIR__, "tags.txt"])
+  @sanitize_chars  %{"<" => "&lt;", ">" => "&gt;", "'" => "&#39"}
+  @external_resource tags_path = Path.join([__DIR__, "tags.txt"])
   @tags (for line <- File.stream!(tags_path, [], :line) do
     line |> String.strip |> String.to_atom
   end)
@@ -19,7 +20,7 @@ defmodule Html do
   def postwalk({:text, _meta, [string]}) do
     quote do
       tabs = render_tabs(var!(indent, Html))
-      put_buffer(var!(buffer, Html), to_string(tabs <> unquote(string) <> "\n"))
+      put_buffer(var!(buffer, Html), sanitize(to_string(tabs <> unquote(string) <> "\n")))
     end
   end
   def postwalk({tag_name, _meta, [[do: inner]]}) when tag_name in @tags do
@@ -66,5 +67,9 @@ defmodule Html do
   def open_tag(name, attrs, tabs) do
     attr_html = for {key, val} <- attrs, into: "", do: " #{key}=\"#{val}\""
     tabs <> "<#{name}#{attr_html}>\n"
+  end
+
+  def sanitize(html) do
+    Enum.reduce(@sanitize_chars, html, fn({char, replacement}, html) -> String.replace(html, char, replacement)end)
   end
 end
